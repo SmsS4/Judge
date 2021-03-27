@@ -2,7 +2,8 @@
 
 This is a test generator for https://quera.ir/.  
 Run main.py for generating testcases  
-currently Judge only supports python3 and c++.
+currently Judge only supports python3 and c++.  
+currently, only works in linux
 
 # config
 ```python
