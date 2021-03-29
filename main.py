@@ -13,6 +13,7 @@ CONF = [
 ]
 SUBTASKS = [40, 60]
 SHUTDOWN_ON_FAILURE = True
+CREATE_CONFIG_JSON = False
 
 tests = [[] for _ in range(len(SUBTASKS))]
 os.makedirs(f"{NAME}/out", exist_ok=True)
@@ -135,7 +136,8 @@ if __name__ == '__main__':
             } for sub in range(len(SUBTASKS))
         ]
     }
-    json.dump(json_config, open(f'{NAME}/config.json', 'w'))
+    if CREATE_CONFIG_JSON:
+        json.dump(json_config, open(f'{NAME}/config.json', 'w'))
     print('Timelimit =', time_limit)
     if len(SOL) > 1:
         print('Check other soultions')
@@ -152,7 +154,6 @@ if __name__ == '__main__':
         if suc:
             print(bcolors.OKGREEN + "Successful" + bcolors.ENDC)
     os.system(f"rm -rf temp")
-
     with ZipFile(f'{NAME}/{NAME}.zip', 'w') as zf:
         for folderName, subfolders, filenames in os.walk(NAME):
             for filename in filenames:
