@@ -1,6 +1,7 @@
 import datetime
 import json
 import os
+from zipfile import ZipFile
 
 NAME = "problem"
 SOL = ["sol.cpp", "sol.py"]
@@ -11,12 +12,13 @@ CONF = [
     (1, 5, GEN[0], VAL[0], 10, 20),
 ]
 SUBTASKS = [40, 60]
+SHUTDOWN_ON_FAILURE = True
 
 tests = [[] for _ in range(len(SUBTASKS))]
 os.makedirs(f"{NAME}/out", exist_ok=True)
 os.makedirs(f"{NAME}/in", exist_ok=True)
-os.makedirs(f"{NAME}/val_out", exist_ok=True)
 os.makedirs("temp", exist_ok=True)
+
 
 class bcolors:
     HEADER = '\033[95m'
@@ -29,15 +31,16 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+
 def shutdown(reason: str) -> None:
     os.system('rm -rf temp')
-
-    print(bcolors.FAIL+'*' * 50+bcolors.ENDC)
+    print(bcolors.FAIL + '*' * 50 + bcolors.ENDC)
     print('Shutting Down... :(')
     print('Reason:')
     print(reason)
     print(bcolors.FAIL + '*' * 50 + bcolors.ENDC)
-    exit(0)
+    if SHUTDOWN_ON_FAILURE:
+        exit(0)
 
 
 def get_no_format(name: str) -> str:
@@ -46,7 +49,7 @@ def get_no_format(name: str) -> str:
 
 def compile_code(name) -> None:
     if name.endswith(".cpp"):
-        print(bcolors.OKBLUE+'Compiling ' + name + bcolors.ENDC)
+        print(bcolors.OKBLUE + 'Compiling ' + name + bcolors.ENDC)
         if os.system(f"g++ -std=c++11 {name} -o temp/{get_no_format(name)}"):
             shutdown(f'compile {name} failed')
 
@@ -59,7 +62,7 @@ def pre_compile() -> None:
         compile_code(val)
     for gen in GEN:
         compile_code(gen)
-    print(bcolors.OKGREEN+'PreCompile Finished'+bcolors.ENDC)
+    print(bcolors.OKGREEN + 'PreCompile Finished' + bcolors.ENDC)
 
 
 def run(name: str, argv: tuple = None, inp: str = None, out: str = None) -> bool:
@@ -120,7 +123,7 @@ if __name__ == '__main__':
                     shutdown(f'Solution FAILED\nSol: {sol}\nGen: {gen}\nargs: {args}\nTestNum: {num}')
                 else:
                     time_limit = max(time_limit, (datetime.datetime.now() - o).total_seconds())
-                    print(bcolors.OKGREEN+"Successful"+bcolors.ENDC)
+                    print(bcolors.OKGREEN + "Successful" + bcolors.ENDC)
             for s in range(sub, len(SUBTASKS)):
                 tests[s].append(num)
             num += 1
@@ -144,8 +147,16 @@ if __name__ == '__main__':
             for test in range(1, num):
                 run(sol, inp=f"{NAME}/in/input{test}.txt", out=f"temp/val_out/output{test}.txt")
                 if diff(f"temp/val_out/output{test}.txt", f"{NAME}/out/output{test}.txt"):
-                    print(bcolors.FAIL+f'Sol failed at test {test}'+bcolors.ENDC)
+                    print(bcolors.FAIL + f'Sol failed at test {test}' + bcolors.ENDC)
                     suc = False
         if suc:
             print(bcolors.OKGREEN + "Successful" + bcolors.ENDC)
     os.system(f"rm -rf temp")
+
+    with ZipFile(f'{NAME}/{NAME}.zip', 'w') as zf:
+        for folderName, subfolders, filenames in os.walk(NAME):
+            for filename in filenames:
+                if filename.endswith('txt') or filename.endswith('json'):
+                    filePath = os.path.join(folderName, filename)
+                    print(filePath)
+                    zf.write(filePath, filePath[filePath.find('/'):])
