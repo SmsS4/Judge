@@ -158,5 +158,4 @@ if __name__ == '__main__':
             for filename in filenames:
                 if filename.endswith('txt') or filename.endswith('json'):
                     filePath = os.path.join(folderName, filename)
-                    print(filePath)
                     zf.write(filePath, filePath[filePath.find('/'):])
