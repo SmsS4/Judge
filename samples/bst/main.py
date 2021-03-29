@@ -2,69 +2,49 @@ import datetime
 import json
 import os
 
-NAME = "problem"
-SOL = ["sol.cpp", "sol.py"]
+NAME = "bst"
+SOL = ["sol.py"]#, "bst.py"]
 VAL = ["val.py"]
-GEN = ["gen.cpp"]
+GEN = ["random.cpp", "do_shakhe.cpp", "long.cpp"]
 CONF = [
-    (0, 5, GEN[0], VAL[0], 10, 20),
-    (1, 5, GEN[0], VAL[0], 10, 20),
+    (0, 1, GEN[0], VAL[0], 10, 10, 10),
+    (0, 1, GEN[1], VAL[0], 4, 4),
+    (0, 10, GEN[0], VAL[0], 1000, 1000, 100_000_000),
+    (0, 10, GEN[0], VAL[0], 1000, 1000, 100_000),
+    (0, 10, GEN[0], VAL[0], 1000, 1000, 100),
+    (0, 1, GEN[1], VAL[0], 1000, 1000),
+    (0, 1, GEN[2], VAL[0], 1000, 1000),
 ]
-SUBTASKS = [40, 60]
+SUBTASKS = [100]
 
 tests = [[] for _ in range(len(SUBTASKS))]
 os.makedirs(f"{NAME}/out", exist_ok=True)
 os.makedirs(f"{NAME}/in", exist_ok=True)
 os.makedirs(f"{NAME}/val_out", exist_ok=True)
-os.makedirs("temp", exist_ok=True)
-
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-
-def shutdown(reason: str) -> None:
-    os.system('rm -rf temp')
-
-    print(bcolors.FAIL+'*' * 50+bcolors.ENDC)
-    print('Shutting Down... :(')
-    print('Reason:')
-    print(reason)
-    print(bcolors.FAIL + '*' * 50 + bcolors.ENDC)
-    exit(0)
 
 
 def get_no_format(name: str) -> str:
     return name.split(".")[0]
 
 
-def compile_code(name) -> None:
+def compile_code(name):
     if name.endswith(".cpp"):
-        print(bcolors.OKBLUE+'Compiling ' + name + bcolors.ENDC)
-        if os.system(f"g++ -std=c++11 {name} -o temp/{get_no_format(name)}"):
-            shutdown(f'compile {name} failed')
+        print('Compiling', name)
+        os.system(f"g++ -std=c++11 {name} -o {get_no_format(name)}")
 
 
-def pre_compile() -> None:
-    print('PreCompile...')
+def pre_compile():
     for sol in SOL:
         compile_code(sol)
     for val in VAL:
         compile_code(val)
     for gen in GEN:
         compile_code(gen)
-    print(bcolors.OKGREEN+'PreCompile Finished'+bcolors.ENDC)
 
 
 def run(name: str, argv: tuple = None, inp: str = None, out: str = None) -> bool:
     if name.endswith(".cpp"):
-        runner = f"./temp/{get_no_format(name)}"
+        runner = f"./{get_no_format(name)}"
     else:
         runner = f"python3 {name}"
 
@@ -97,7 +77,6 @@ def diff(file1, file2) -> bool:
 
 if __name__ == '__main__':
     pre_compile()
-    print('Generating tests')
     num = 1
     time_limit = 0
     for conf in CONF:
@@ -111,16 +90,16 @@ if __name__ == '__main__':
         for i in range(cnt):
             print(f'Test {num}')
             if run(gen, args + (num,), out=f"{NAME}/in/input{num}.txt"):
-                shutdown(f'Generator FAILED\nGen: {gen}\nargs: {args}\nTestNum: {num}')
+                print('Generator FAILED')
             elif val and run(val, inp=f"{NAME}/in/input{num}.txt"):
-                shutdown(f'Validator FAILED\nVal: {val}\nGen: {gen}\nargs: {args}\nTestNum: {num}')
+                print('Validator FAILED')
             else:
                 o = datetime.datetime.now()
                 if run(sol, inp=f"{NAME}/in/input{num}.txt", out=f"{NAME}/out/output{num}.txt"):
-                    shutdown(f'Solution FAILED\nSol: {sol}\nGen: {gen}\nargs: {args}\nTestNum: {num}')
+                    print("Solution Failed")
                 else:
                     time_limit = max(time_limit, (datetime.datetime.now() - o).total_seconds())
-                    print(bcolors.OKGREEN+"Successful"+bcolors.ENDC)
+                    print("Successful")
             for s in range(sub, len(SUBTASKS)):
                 tests[s].append(num)
             num += 1
@@ -132,20 +111,15 @@ if __name__ == '__main__':
             } for sub in range(len(SUBTASKS))
         ]
     }
-    json.dump(json_config, open(f'{NAME}/config.json', 'w'))
+    json.dump(json_config, open('config.json', 'w'))
     print('Timelimit =', time_limit)
     if len(SOL) > 1:
         print('Check other soultions')
-        os.system(f"rm -rf temp/val_out")
-        os.makedirs(f"temp/val_out")
-        suc = True
+        os.system(f"rm -rf {NAME}/val_out")
+        os.makedirs(f"{NAME}/val_out")
         for sol in SOL[1:]:
             print(sol)
             for test in range(1, num):
-                run(sol, inp=f"{NAME}/in/input{test}.txt", out=f"temp/val_out/output{test}.txt")
-                if diff(f"temp/val_out/output{test}.txt", f"{NAME}/out/output{test}.txt"):
-                    print(bcolors.FAIL+f'Sol failed at test {test}'+bcolors.ENDC)
-                    suc = False
-        if suc:
-            print(bcolors.OKGREEN + "Successful" + bcolors.ENDC)
-    os.system(f"rm -rf temp")
+                run(sol, inp=f"{NAME}/in/input{test}.txt", out=f"{NAME}/val_out/output{test}.txt")
+                if diff(f"{NAME}/val_out/output{test}.txt", f"{NAME}/out/output{test}.txt"):
+                    print(f'Sol failed at test {test}')
