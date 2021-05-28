@@ -1,0 +1,19 @@
+{
+  "name": "name",
+  "resource": "resources",
+  "solutions": [
+    "sol.cpp",
+    "sol.py"
+  ],
+  "sub_tasks_score": [10, 20, 30, 40],
+  "tests": [
+    {
+      "number_of_tests": 5,
+      "args": [1, 5, 2, "string_arg"],
+      "validator": "val.py",
+      "generator": "gen.cpp",
+      "sub_tasks": [1, 2]
+    }
+  ],
+  "shutdown_on_failure": true
+}

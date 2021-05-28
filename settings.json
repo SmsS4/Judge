@@ -1,0 +1,27 @@
+{
+  "name": "name",
+  "resource": "path/to/resource/folder",
+  "solutions": [
+    "first_solution_name",
+    "second_solution_name",
+    "third_solution_name"
+  ],
+  "sub_tasks_score": [10, 20, 30, 40],
+  "tests": [
+    {
+      "number_of_tests": 5,
+      "args": [1, 5, 2, "string_arg"],
+      "validator": "validator_name",
+      "generator": "generator_name",
+      "sub_tasks": [1, 2]
+    },
+    {
+      "number_of_tests": 10,
+      "args": [1, 5, 2, "string_arg"],
+      "validator": "validator_name",
+      "generator": "generator_name",
+      "sub_tasks": [1, 2, 3, 4]
+    }
+  ],
+  "shutdown_on_failure": true
+}
